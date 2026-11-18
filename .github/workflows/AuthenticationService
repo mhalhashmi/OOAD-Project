@@ -1,0 +1,35 @@
+
+import java.util.ArrayList;
+
+public class AuthenticationService {
+
+    private ArrayList<Student> students;
+
+    public AuthenticationService() {
+        students = new ArrayList<>();
+
+        students.add(new Student(
+                "Ahmed", "12345", "ahmed123", "pass123"));
+
+        students.add(new Student(
+                "Omar", "67890", "omar123", "pass456"));
+
+        students.add(new Student(
+                "Sara", "11223", "sara123", "pass789"));
+    }
+
+    public Student authenticate(String username, String password) {
+        if (username == null || password == null) {
+            return null;
+        }
+
+        for (Student student : students) {
+            if (student.getUsername().equals(username.trim())
+                    && student.checkPassword(password)) {
+                return student;
+            }
+        }
+
+        return null;
+    }
+}
