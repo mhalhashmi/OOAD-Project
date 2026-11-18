@@ -1,0 +1,41 @@
+
+public class Book implements Borrowable {
+
+    private String title;
+    private String author;
+    private String category;
+    private boolean available;
+
+    public Book(String title, String author, String category) {
+        this.title = title;
+        this.author = author;
+        this.category = category;
+        this.available = true;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return available;
+    }
+
+    @Override
+    public void setAvailable(boolean status) {
+        this.available = status;
+    }
+
+    public String getBookType() {
+        return "Physical Book";
+    }
+}
