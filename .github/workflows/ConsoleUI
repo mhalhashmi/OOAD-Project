@@ -1,0 +1,430 @@
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class ConsoleUI {
+
+    private Library library;
+    private AuthenticationService authService;
+    private Student currentStudent;
+    private Scanner scanner;
+
+    public ConsoleUI() {
+        library = new Library();
+        authService = new AuthenticationService();
+        currentStudent = null;
+        scanner = new Scanner(System.in);
+    }
+
+    public void start() {
+        System.out.println("==================================");
+        System.out.println("    UNIVERSITY LIBRARY SYSTEM");
+        System.out.println("==================================");
+        System.out.println("Librarian: Welcome to the library!");
+
+        login();
+
+        boolean running = true;
+
+        while (running) {
+            displayMainMenu();
+
+            String input = scanner.nextLine().trim();
+
+            try {
+                int choice = Integer.parseInt(input);
+
+                if (choice == 0) {
+                    System.out.println("Librarian: Thank you for visiting!");
+                    running = false;
+                } else {
+                    handleMenuChoice(choice);
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println(
+                        "Librarian: Please enter a valid menu number.");
+            }
+        }
+    }
+
+    public void login() {
+        while (currentStudent == null) {
+            System.out.println("\n===== STUDENT LOGIN =====");
+
+            System.out.print("Username: ");
+            String username = scanner.nextLine();
+
+            System.out.print("Password: ");
+            String password = scanner.nextLine();
+
+            currentStudent = authService.authenticate(username, password);
+
+            if (currentStudent == null) {
+                System.out.println(
+                        "Librarian: Incorrect username or password. Try again.");
+            } else {
+                System.out.println(
+                        "\nLibrarian: Login successful! Welcome, "
+                        + currentStudent.getName() + "!");
+            }
+        }
+    }
+
+    public void displayMainMenu() {
+        System.out.println("\n========== MAIN MENU ==========");
+        System.out.println("1. Browse Books");
+        System.out.println("2. Search Books");
+        System.out.println("3. Check Availability");
+        System.out.println("4. Borrow Book");
+        System.out.println("5. Return Book");
+        System.out.println("6. View Borrowed Books");
+        System.out.println("7. View Book Details");
+        System.out.println("8. View Library Information");
+        System.out.println("9. View Books by Category");
+        System.out.println("10. View Due Dates");
+        System.out.println("11. View Student Profile");
+        System.out.println("12. View Borrowing History");
+        System.out.println("13. View Overdue Books");
+        System.out.println("14. Recommend a Random Book");
+        System.out.println("15. Count Available Books");
+        System.out.println("0. Exit");
+        System.out.println("================================");
+        System.out.print("Select an option: ");
+    }
+
+    public void handleMenuChoice(int choice) {
+        switch (choice) {
+            case 1:
+                displayBooks();
+                break;
+            case 2:
+                searchBooks();
+                break;
+            case 3:
+                checkAvailability();
+                break;
+            case 4:
+                borrowBook();
+                break;
+            case 5:
+                returnBook();
+                break;
+            case 6:
+                displayBorrowedBooks();
+                break;
+            case 7:
+                displayBookDetails();
+                break;
+            case 8:
+                displayLibraryInfo();
+                break;
+            case 9:
+                displayBooksByCategory();
+                break;
+            case 10:
+                displayDueDates();
+                break;
+            case 11:
+                displayStudentProfile();
+                break;
+            case 12:
+                displayBorrowingHistory();
+                break;
+            case 13:
+                displayOverdueBooks();
+                break;
+            case 14:
+                displayRandomRecommendation();
+                break;
+            case 15:
+                displayAvailableBookCount();
+                break;
+            default:
+                System.out.println("Librarian: Invalid menu option.");
+        }
+    }
+
+    private String ask(String message) {
+        System.out.print("Librarian: " + message + "\nStudent: ");
+        return scanner.nextLine().trim();
+    }
+
+    private void printBook(Book book) {
+        System.out.println(
+                "Title: " + book.getTitle()
+                + " | Author: " + book.getAuthor()
+                + " | Category: " + book.getCategory()
+                + " | Type: " + book.getBookType()
+                + " | Available: " + (book.isAvailable() ? "Yes" : "No"));
+    }
+
+    public void displayBooks() {
+        System.out.println("\n===== LIBRARY BOOKS =====");
+
+        ArrayList<Book> books = library.getBooks();
+
+        if (books.isEmpty()) {
+            System.out.println("Librarian: No books found.");
+            return;
+        }
+
+        for (Book book : books) {
+            printBook(book);
+        }
+    }
+
+    // Both overloaded search methods are used here.
+    public void searchBooks() {
+        System.out.println("\n===== SEARCH BOOKS =====");
+        System.out.println("1. Search by title or author");
+        System.out.println("2. Search by title or author within a category");
+        System.out.print("Select search type: ");
+
+        String choice = scanner.nextLine().trim();
+
+        if (!choice.equals("1") && !choice.equals("2")) {
+            System.out.println("Librarian: Invalid search option.");
+            return;
+        }
+
+        String keyword = ask("Enter a book title or author:");
+
+        if (keyword.isEmpty()) {
+            System.out.println("Librarian: Search cannot be empty.");
+            return;
+        }
+
+        ArrayList<Book> results;
+
+        if (choice.equals("1")) {
+            results = library.searchBooks(keyword);
+        } else {
+            String category = ask("Enter a category:");
+
+            if (category.isEmpty()) {
+                System.out.println("Librarian: Category cannot be empty.");
+                return;
+            }
+
+            results = library.searchBooks(keyword, category);
+        }
+
+        if (results.isEmpty()) {
+            System.out.println("Librarian: No matching books found.");
+        } else {
+            System.out.println("\n===== SEARCH RESULTS =====");
+
+            for (Book book : results) {
+                printBook(book);
+            }
+        }
+    }
+
+    public void checkAvailability() {
+        String title = ask("Enter the book title:");
+
+        if (title.isEmpty()) {
+            System.out.println("Librarian: Book title cannot be empty.");
+            return;
+        }
+
+        Book book = library.findBook(title);
+
+        if (book == null) {
+            System.out.println("Librarian: Book not found.");
+        } else if (book.isAvailable()) {
+            System.out.println("Librarian: This book is available.");
+        } else {
+            System.out.println("Librarian: This book is currently borrowed.");
+        }
+    }
+
+    public void borrowBook() {
+        String title = ask("Which book would you like to borrow?");
+
+        if (title.isEmpty()) {
+            System.out.println("Librarian: Book title cannot be empty.");
+            return;
+        }
+
+        boolean success = library.borrowBook(title, currentStudent);
+
+        if (success) {
+            Loan loan = library.getActiveLoan(title, currentStudent);
+
+            System.out.println("\nLibrarian: Book borrowed successfully!");
+            System.out.println("Book: " + loan.getBook().getTitle());
+            System.out.println("Borrow Date: " + loan.getBorrowDate());
+            System.out.println("Due Date: " + loan.getDueDate());
+        } else {
+            System.out.println(
+                    "Librarian: Book unavailable or does not exist.");
+        }
+    }
+
+    public void returnBook() {
+        String title = ask("Which book would you like to return?");
+
+        if (title.isEmpty()) {
+            System.out.println("Librarian: Book title cannot be empty.");
+            return;
+        }
+
+        boolean success = library.returnBook(title, currentStudent);
+
+        if (success) {
+            System.out.println("Librarian: Book returned successfully!");
+        } else {
+            System.out.println(
+                    "Librarian: You do not have an active loan for this book.");
+        }
+    }
+
+    public void displayBorrowedBooks() {
+        ArrayList<Loan> loans = library.getBorrowedBooks(currentStudent);
+
+        System.out.println("\n===== BORROWED BOOKS =====");
+
+        if (loans.isEmpty()) {
+            System.out.println("Librarian: You have no borrowed books.");
+            return;
+        }
+
+        for (Loan loan : loans) {
+            System.out.println(
+                    loan.getBook().getTitle()
+                    + " | Borrowed: " + loan.getBorrowDate()
+                    + " | Due: " + loan.getDueDate());
+        }
+    }
+
+    public void displayBookDetails() {
+        String title = ask("Enter the book title:");
+
+        Book book = library.findBook(title);
+
+        if (book == null) {
+            System.out.println("Librarian: Book not found.");
+        } else {
+            System.out.println("\n===== BOOK DETAILS =====");
+            printBook(book);
+        }
+    }
+
+    public void displayLibraryInfo() {
+        int total = library.getBooks().size();
+        int available = library.getAvailableBookCount();
+
+        System.out.println("\n===== LIBRARY INFORMATION =====");
+        System.out.println("Total Books: " + total);
+        System.out.println("Available Books: " + available);
+        System.out.println("Borrowed Books: " + (total - available));
+    }
+
+    public void displayBooksByCategory() {
+        System.out.println("\nAvailable Categories:");
+        System.out.println("Technology");
+        System.out.println("Science");
+        System.out.println("History");
+
+        String category = ask("Enter a category:");
+
+        ArrayList<Book> books = library.getBooksByCategory(category);
+
+        if (books.isEmpty()) {
+            System.out.println("Librarian: No books found in this category.");
+            return;
+        }
+
+        for (Book book : books) {
+            printBook(book);
+        }
+    }
+
+    public void displayDueDates() {
+        ArrayList<Loan> loans = library.getBorrowedBooks(currentStudent);
+
+        System.out.println("\n===== DUE DATES =====");
+
+        if (loans.isEmpty()) {
+            System.out.println("Librarian: No active borrowing records.");
+            return;
+        }
+
+        for (Loan loan : loans) {
+            System.out.println(
+                    loan.getBook().getTitle()
+                    + " | Due Date: " + loan.getDueDate());
+        }
+    }
+
+    public void displayStudentProfile() {
+        int borrowed = library.getBorrowedBooks(currentStudent).size();
+
+        System.out.println("\n===== STUDENT PROFILE =====");
+        System.out.println("Name: " + currentStudent.getName());
+        System.out.println("Student ID: " + currentStudent.getStudentID());
+        System.out.println("Username: " + currentStudent.getUsername());
+        System.out.println("Currently Borrowed Books: " + borrowed);
+    }
+
+    public void displayBorrowingHistory() {
+        ArrayList<Loan> loans = library.getBorrowingHistory(currentStudent);
+
+        System.out.println("\n===== BORROWING HISTORY =====");
+
+        if (loans.isEmpty()) {
+            System.out.println("Librarian: No borrowing history found.");
+            return;
+        }
+
+        for (Loan loan : loans) {
+            String status = loan.isReturned() ? "Returned" : "Borrowed";
+
+            System.out.println(
+                    loan.getBook().getTitle()
+                    + " | Borrow Date: " + loan.getBorrowDate()
+                    + " | Status: " + status
+                    + (loan.isReturned()
+                        ? " | Return Date: " + loan.getReturnDate()
+                        : ""));
+        }
+    }
+
+    public void displayOverdueBooks() {
+        ArrayList<Loan> loans = library.getOverdueBooks(currentStudent);
+
+        System.out.println("\n===== OVERDUE BOOKS =====");
+
+        if (loans.isEmpty()) {
+            System.out.println("Librarian: You have no overdue books.");
+            return;
+        }
+
+        for (Loan loan : loans) {
+            System.out.println(
+                    loan.getBook().getTitle()
+                    + " | Due Date: " + loan.getDueDate());
+        }
+    }
+
+    public void displayRandomRecommendation() {
+        Book book = library.recommendBook();
+
+        System.out.println("\n===== BOOK RECOMMENDATION =====");
+
+        if (book == null) {
+            System.out.println("Librarian: No available books to recommend.");
+        } else {
+            System.out.println("Librarian recommends:");
+            printBook(book);
+        }
+    }
+
+    public void displayAvailableBookCount() {
+        System.out.println("\n===== AVAILABLE BOOKS =====");
+        System.out.println(
+                "Total Available Books: " + library.getAvailableBookCount());
+    }
+}
