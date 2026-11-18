@@ -1,0 +1,12 @@
+
+public class DigitalBook extends Book {
+
+    public DigitalBook(String title, String author, String category) {
+        super(title, author, category);
+    }
+
+    @Override
+    public String getBookType() {
+        return "Digital Book";
+    }
+}
