@@ -1,0 +1,28 @@
+
+public class Student extends Person {
+
+    private String studentID;
+    private String username;
+    private String password;
+
+    public Student(String name, String studentID,
+                   String username, String password) {
+
+        super(name);
+        this.studentID = studentID;
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getStudentID() {
+        return studentID;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public boolean checkPassword(String password) {
+        return this.password.equals(password);
+    }
+}
