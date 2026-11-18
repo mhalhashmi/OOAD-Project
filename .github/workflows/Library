@@ -1,0 +1,238 @@
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class Library {
+
+    private ArrayList<Book> books;
+    private ArrayList<Loan> loans;
+
+    public Library() {
+        books = new ArrayList<>();
+        loans = new ArrayList<>();
+        initializeBooks();
+    }
+
+    private void initializeBooks() {
+        books.add(new Book("Java Programming", "John Smith", "Technology"));
+        books.add(new Book("Introduction to Python", "Sarah Johnson", "Technology"));
+        books.add(new Book("Data Structures", "Michael Brown", "Technology"));
+        books.add(new Book("Computer Networks", "David Wilson", "Technology"));
+        books.add(new DigitalBook("Artificial Intelligence", "Emily Davis", "Technology"));
+
+        books.add(new Book("Basic Physics", "Robert Taylor", "Science"));
+        books.add(new Book("Introduction to Biology", "Linda Anderson", "Science"));
+        books.add(new Book("General Chemistry", "James Thomas", "Science"));
+        books.add(new Book("Astronomy Basics", "Daniel White", "Science"));
+        books.add(new Book("Environmental Science", "Lisa Martin", "Science"));
+
+        books.add(new Book("World History", "William Harris", "History"));
+        books.add(new Book("Ancient Civilizations", "Mary Clark", "History"));
+        books.add(new Book("Modern History", "Christopher Lewis", "History"));
+        books.add(new Book("History of Technology", "Patricia Walker", "History"));
+        books.add(new Book("The Roman Empire", "Thomas Hall", "History"));
+    }
+
+    public ArrayList<Book> getBooks() {
+        return new ArrayList<>(books);
+    }
+
+    public Book findBook(String title) {
+        if (title == null) {
+            return null;
+        }
+
+        for (Book book : books) {
+            if (book.getTitle().equalsIgnoreCase(title.trim())) {
+                return book;
+            }
+        }
+
+        return null;
+    }
+
+    // Original search method
+    public ArrayList<Book> searchBooks(String keyword) {
+        ArrayList<Book> results = new ArrayList<>();
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return results;
+        }
+
+        String search = keyword.trim().toLowerCase();
+
+        for (Book book : books) {
+            if (book.getTitle().toLowerCase().contains(search)
+                    || book.getAuthor().toLowerCase().contains(search)) {
+                results.add(book);
+            }
+        }
+
+        return results;
+    }
+
+    // Overloaded search method
+    public ArrayList<Book> searchBooks(String keyword, String category) {
+        ArrayList<Book> results = new ArrayList<>();
+
+        if (keyword == null || category == null
+                || keyword.trim().isEmpty()
+                || category.trim().isEmpty()) {
+            return results;
+        }
+
+        String search = keyword.trim().toLowerCase();
+
+        for (Book book : books) {
+            boolean matchesKeyword =
+                    book.getTitle().toLowerCase().contains(search)
+                    || book.getAuthor().toLowerCase().contains(search);
+
+            boolean matchesCategory =
+                    book.getCategory().equalsIgnoreCase(category.trim());
+
+            if (matchesKeyword && matchesCategory) {
+                results.add(book);
+            }
+        }
+
+        return results;
+    }
+
+    public boolean borrowBook(String title, Student student) {
+        Book book = findBook(title);
+
+        if (student == null || book == null || !book.isAvailable()) {
+            return false;
+        }
+
+        LocalDate dueDate = calculateDueDate(14);
+
+        book.setAvailable(false);
+        recordLoan(book, student, dueDate);
+
+        return true;
+    }
+
+    public boolean returnBook(String title, Student student) {
+        Loan loan = getActiveLoan(title, student);
+
+        if (loan == null) {
+            return false;
+        }
+
+        loan.markReturned();
+        loan.getBook().setAvailable(true);
+
+        return true;
+    }
+
+    public Loan getActiveLoan(String title, Student student) {
+        if (title == null || student == null) {
+            return null;
+        }
+
+        for (Loan loan : loans) {
+            if (loan.getStudent() == student
+                    && !loan.isReturned()
+                    && loan.getBook().getTitle().equalsIgnoreCase(title.trim())) {
+                return loan;
+            }
+        }
+
+        return null;
+    }
+
+    public ArrayList<Loan> getBorrowedBooks(Student student) {
+        ArrayList<Loan> results = new ArrayList<>();
+
+        for (Loan loan : loans) {
+            if (loan.getStudent() == student && !loan.isReturned()) {
+                results.add(loan);
+            }
+        }
+
+        return results;
+    }
+
+    public ArrayList<Loan> getBorrowingHistory(Student student) {
+        ArrayList<Loan> results = new ArrayList<>();
+
+        for (Loan loan : loans) {
+            if (loan.getStudent() == student) {
+                results.add(loan);
+            }
+        }
+
+        return results;
+    }
+
+    public ArrayList<Book> getBooksByCategory(String category) {
+        ArrayList<Book> results = new ArrayList<>();
+
+        if (category == null) {
+            return results;
+        }
+
+        for (Book book : books) {
+            if (book.getCategory().equalsIgnoreCase(category.trim())) {
+                results.add(book);
+            }
+        }
+
+        return results;
+    }
+
+    public int getAvailableBookCount() {
+        int count = 0;
+
+        for (Book book : books) {
+            if (book.isAvailable()) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public ArrayList<Loan> getOverdueBooks(Student student) {
+        ArrayList<Loan> results = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
+        for (Loan loan : loans) {
+            if (loan.getStudent() == student
+                    && !loan.isReturned()
+                    && loan.getDueDate().isBefore(today)) {
+                results.add(loan);
+            }
+        }
+
+        return results;
+    }
+
+    public Book recommendBook() {
+        ArrayList<Book> availableBooks = new ArrayList<>();
+
+        for (Book book : books) {
+            if (book.isAvailable()) {
+                availableBooks.add(book);
+            }
+        }
+
+        if (availableBooks.isEmpty()) {
+            return null;
+        }
+
+        Random random = new Random();
+        return availableBooks.get(random.nextInt(availableBooks.size()));
+    }
+
+    public LocalDate calculateDueDate(int days) {
+        return LocalDate.now().plusDays(days);
+    }
+
+    public void recordLoan(Book book, Student student, LocalDate dueDate) {
+        loans.add(new Loan(book, student, dueDate));
+    }
+}
